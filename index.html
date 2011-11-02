@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+  <title>Test Viewer</title>
+  <style type="text/css">
+    @import url("css/reset.css");
+    html { width: 100%; height: 100%; }
+    body { width: 100%; height: 100%; margin: 0; padding: 0; }
+    #controls {
+        width: 20%;
+        float: left;
+    }
+    #map {
+        width: 80%;
+        height: 100%;
+        float: right;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Where I've Been</h1>
+  <div id="controls">
+      <p>Number of places to fetch: <input name="num_places" value="100" /></p>
+      <p>Places fetched: <span id="places_fetched"></span></p>
+  </div>
+  <div id="map"></div>
+</body>
+<script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
+<script src="js/script.js"></script>
+<!-- <script src='js/config.js'></script> optional, used for file:/// desktop development convenience -->
+<script src='/static/js/viewer.js'></script> <!-- common locker viewer utilities -->
+</html>
