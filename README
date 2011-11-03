@@ -1,5 +1,19 @@
 "Where I've Been" app for the Locker Project
+============================================
 
 NOTE: This app currently claims to be a photo viewer since the new Locker
 Project UI doesn't have a Places dropdown yet.
 
+Todo
+----
+- date selection sliders
+- figure out what to do with low-accuracy latitude updates so that the
+  overlapping red circles don't take over the whole screen
+- fetch only places within the bounds of the map, and update as the user
+  pans/zooms the map
+- cluster nearby places into one marker at higher zoom levels
+- limit fetched places by various criteria:
+  - place source (foursquare, twitter, latitude, etc.)
+  - place category on foursquare
+- show more interesting information in the info window
+- set hover text of twitter updates to the update text
