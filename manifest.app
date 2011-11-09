@@ -1,7 +1,7 @@
 {
     "title": "Where I've Been",
     "desc": "Explore places I've been",
-    "viewer": "photos",
+    "viewer": "places",
     "static": "true",
     "handle": "whereivebeen",
     "author": "garyp"
