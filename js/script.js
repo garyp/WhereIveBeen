@@ -4,6 +4,65 @@ var global = {
     infowindow: null
 };
 
+function lockerQuery(collection, params) {
+    var options = {};
+    if (params.limit) {
+        options.limit = Number(params.limit);
+    }
+    if (params.offset) {
+        options.offset = Number(params.offset);
+    }
+    if (params.sort) {
+        var field, direction;
+        if (typeof(params.sort) == "string") {
+            field = params.sort;
+            direction = 1;
+        } else {
+            field = params.sort[0];
+            direction = params.sort[1];
+        }
+        options.sort = '\'{"' + field + '":' + direction.toString() + '}\'';
+    }
+    if (params.fields && params.fields.length > 0) {
+        options.fields = ('[' +
+                params.fields.map(function(field) {
+                    return field + ':1';
+                }).join(',') +
+                ']');
+    }
+    if (params.terms) {
+        options.terms = ('[' +
+                (typeof(params.terms) == "string" ?
+                 params.terms :
+                 params.terms.map(function(term) {
+                     var value;
+                     switch (typeof(term[1])) {
+                         case 'number':
+                         case 'boolean':
+                             value = term[1].toString();
+                             break;
+                         default:
+                             value = ('"' +
+                                 term[1].toString().replace(/"/g, '\\"') +
+                                 '"');
+                             break;
+                     }
+                     if (term.length > 2) {
+                         value += term[2];
+                     }
+                     return term[0] + ':' + value;
+                 }).join(',')) +
+                ']');
+    }
+    console.log("Fetching /query/get" + collection + "?" +
+            decodeURIComponent($.param(options)));
+    if (arguments.length > 2) {
+        return $.getJSON('/query/get' + collection, options, arguments[2]);
+    } else {
+        return $.getJSON('/query/get' + collection, options);
+    }
+}
+
 function mapPlace(place, bbox) {
     var latlng = new google.maps.LatLng(place.lat, place.lng);
     bbox.extend(latlng);
@@ -46,11 +105,11 @@ function mapPlace(place, bbox) {
 
 function reloadPlaces(data) {
     // be careful with the limit, some people have large datasets ;)
-    $.getJSON('/query/getPlace',
+    lockerQuery('Place',
             {
-                'terms': '[me:true]',
-                'limit': Number($("input[name='num_places']").val()),
-                'sort': '\'{"at":-1}\''
+                'terms': [ [ 'me', true ] ],
+                'limit': $("#num_places").val(),
+                'sort': [ 'at', -1 ]
             },
             function(data) {
                 if (!data || !data.length) return;
@@ -73,7 +132,7 @@ function reloadPlaces(data) {
 }
 
 $(function() {
-    $("input[name='num_places']").change(reloadPlaces);
+    $("#num_places").change(reloadPlaces);
 
     var latlng = new google.maps.LatLng(38.6, -98.8);
     var mapOptions = {
