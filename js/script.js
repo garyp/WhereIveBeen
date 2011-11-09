@@ -65,42 +65,56 @@ function lockerQuery(collection, params) {
 
 function mapPlace(place, bbox) {
     var latlng = new google.maps.LatLng(place.lat, place.lng);
-    bbox.extend(latlng);
     var marker;
-    if (place.network == "glatitude") {
-        var opacity = 1 / Math.log(place.via.accuracy * (Math.E/5));
-        if (opacity < 0 || opacity > 1) opacity = 1;
+    if (place.stream) {
         marker = new google.maps.Circle({
             center: latlng,
-            radius: place.via.accuracy,
             fillColor: "red",
-            fillOpacity: opacity,
             strokeWeight: 0
         });
     } else {
         marker = new google.maps.Marker({
             position: latlng
         });
-    }
-    if (place.network == "foursquare") {
-        marker.setTitle(place.via.venue.name);
-        if (place.via.venue.categories.length > 0) {
-            var pcat = $.grep(place.via.venue.categories, function(cat) {
-                return cat.primary;
-            });
-            var icon = (pcat.length > 0 ? pcat[0].icon : place.via.venue.categories[0].icon);
-            marker.setIcon(new google.maps.MarkerImage(icon));
+        if (place.title) {
+            marker.setTitle(place.title);
         }
-    }
-    if (place.network != "glatitude") {
         google.maps.event.addListener(marker, 'click', function() {
-            global.infowindow.setContent(
-                new Date(place.at).toString() + " via " + place.network);
+            var content;
+            if (place.text) content += place.text + "\n";
+            content += new Date(place.at).toString() + " via " + place.network;
+            global.infowindow.setContent(content);
             global.infowindow.open(global.map, marker);
         });
     }
-    marker.setMap(global.map);
-    global.markers.push(marker);
+
+    var processViaFn;
+    if (place.network == "glatitude") {
+        processViaFn = function(data) {
+            var opacity = 1 / Math.log(data.accuracy * (Math.E/5));
+            if (opacity < 0 || opacity > 1) opacity = 1;
+            marker.setOptions({
+                radius: data.accuracy,
+                fillOpacity: opacity
+            });
+        };
+    } else if (place.network == "foursquare") {
+        processViaFn = function(data) {
+            if (!data.venue || data.venue.categories.length < 1) return;
+            var pcat = $.grep(data.venue.categories, function(cat) {
+                return cat.primary;
+            });
+            var icon = (pcat.length > 0 ? pcat[0].icon : data.venue.categories[0].icon);
+            marker.setIcon(new google.maps.MarkerImage(icon));
+        };
+    }
+
+    $.when( processViaFn ? $.getJSON(place.via).pipe(processViaFn) : {} )
+        .done(function() {
+            bbox.extend(latlng);
+            marker.setMap(global.map);
+            global.markers.push(marker);
+        });
 }
 
 function reloadPlaces(data) {
