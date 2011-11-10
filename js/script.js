@@ -86,8 +86,8 @@ function mapPlace(place, bbox) {
             marker.setTitle(place.title);
         }
         google.maps.event.addListener(marker, 'click', function() {
-            var content;
-            if (place.text) content += place.text + "\n";
+            var content = "";
+            if (place.text) content += place.text + "<br />";
             content += new Date(place.at).toString() + " via " + place.network;
             global.infowindow.setContent(content);
             global.infowindow.open(global.map, marker);
