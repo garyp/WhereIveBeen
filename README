@@ -1,12 +1,11 @@
 "Where I've Been" app for the Locker Project
 ============================================
 
-NOTE: This app currently claims to be a photo viewer since the new Locker
-Project UI doesn't have a Places dropdown yet.
+NOTE: This requires https://github.com/LockerProject/Locker/pull/408 to be
+merged into your Locker repository.
 
 Todo
 ----
-- date selection sliders
 - figure out what to do with low-accuracy latitude updates so that the
   overlapping red circles don't take over the whole screen
 - fetch only places within the bounds of the map, and update as the user
