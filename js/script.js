@@ -142,9 +142,15 @@ function mapPlace(place, bbox) {
 
 function reloadPlaces(data) {
     // be careful with the limit, some people have large datasets ;)
+    var minDate = $("#date_slider").slider("values", 0),
+        maxDate = $("#date_slider").slider("values", 1);
+    console.log("slider dates: " + minDate + " " + maxDate);
     lockerQuery('Place',
             {
-                'terms': [ [ 'me', true ] ],
+                'terms': [
+                    [ 'me', true ],
+                    [ 'at', minDate, '-', maxDate ]
+                ],
                 'limit': $("#num_places").val(),
                 'sort': [ 'at', -1 ]
             },
@@ -167,6 +173,28 @@ function reloadPlaces(data) {
             });
 }
 
+function loadDateRange(cb) {
+    $.when(
+            lockerQuery('Place', {
+                'limit': 1,
+                'sort': [ 'at', 1 ],
+                'terms': [ [ 'me', true ] ],
+                'fields': [ 'at' ]
+            }),
+            lockerQuery('Place', {
+                'limit': 1,
+                'sort': [ 'at', -1 ],
+                'terms': [ [ 'me', true ] ],
+                'fields': [ 'at' ]
+            })
+          )
+    .done(function(fromDateData, toDateData) {
+        if (!fromDateData[0] || !fromDateData[0].length ||
+            !toDateData[0] || !toDateData[0].length) return;
+        cb(new Date(fromDateData[0][0].at), new Date(toDateData[0][0].at));
+    });
+}
+
 $(function() {
     $("#num_places").change(reloadPlaces);
 
@@ -178,6 +206,24 @@ $(function() {
     };
     global.map = new google.maps.Map(document.getElementById("map"), mapOptions);
     global.infowindow = new google.maps.InfoWindow();
-    reloadPlaces();
+    loadDateRange(function(fromDate, toDate) {
+        console.log("got date range: " + fromDate + ", " + toDate);
+        $("#from_date").val(fromDate.toLocaleDateString());
+        $("#to_date").val(toDate.toLocaleDateString());
+        var min = fromDate.getTime() - (fromDate.getTime() % 86400000),
+            max = toDate.getTime() - (toDate.getTime() % 86400000) + 86400000;
+        $("#date_slider").slider({
+            range: true,
+            min: min,
+            max: max,
+            values: [ min, max ],
+            step: 86400000,
+            slide: function(event, ui) {
+                $("#from_date").val(new Date(ui.values[0]).toLocaleDateString());
+                $("#to_date").val(new Date(ui.values[1]).toLocaleDateString());
+            }
+        });
+        reloadPlaces();
+    });
 });
 
