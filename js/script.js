@@ -5,6 +5,20 @@ var global = {
 };
 
 function lockerQuery(collection, params) {
+    function valueToString(value) {
+         switch (typeof(value)) {
+             case 'number':
+             case 'boolean':
+                 return value.toString();
+                 break;
+             default:
+                 return ('"' +
+                     value.toString().replace(/"/g, '\\"') +
+                     '"');
+                 break;
+         }
+    }
+
     var options = {};
     if (params.limit) {
         options.limit = Number(params.limit);
@@ -35,20 +49,12 @@ function lockerQuery(collection, params) {
                 (typeof(params.terms) == "string" ?
                  params.terms :
                  params.terms.map(function(term) {
-                     var value;
-                     switch (typeof(term[1])) {
-                         case 'number':
-                         case 'boolean':
-                             value = term[1].toString();
-                             break;
-                         default:
-                             value = ('"' +
-                                 term[1].toString().replace(/"/g, '\\"') +
-                                 '"');
-                             break;
-                     }
+                     var value = valueToString(term[1]);
                      if (term.length > 2) {
                          value += term[2];
+                     }
+                     if (term.length > 3) {
+                         value += valueToString(term[3]);
                      }
                      return term[0] + ':' + value;
                  }).join(',')) +
