@@ -96,6 +96,9 @@ function mapPlace(place, bbox) {
 
     var processViaFn;
     if (place.network == "glatitude") {
+        // for latitude locations, increase the transparency of the circle as
+        // the position accuracy decreases so that the map isn't overwhelmed
+        // with big red circles
         processViaFn = function(data) {
             var opacity = 1 / Math.log(data.accuracy * (Math.E/5));
             if (opacity < 0 || opacity > 1) opacity = 1;
@@ -105,21 +108,35 @@ function mapPlace(place, bbox) {
             });
         };
     } else if (place.network == "foursquare") {
+        // for 4sq checkins, have the map marker use the icon of the venue's
+        // primary category
         processViaFn = function(data) {
             if (!data.venue || data.venue.categories.length < 1) return;
             var pcat = $.grep(data.venue.categories, function(cat) {
                 return cat.primary;
             });
+            // default to the first category if there's no primary one
             var icon = (pcat.length > 0 ? pcat[0].icon : data.venue.categories[0].icon);
             marker.setIcon(new google.maps.MarkerImage(icon));
         };
     }
 
+    // reduce load of resizing the map for every single new marker by only
+    // doing it once a second
+    var throttledFitBounds = _.throttle(function() {
+        global.map.fitBounds(bbox);
+    }, 1000);
+
+    // if there's no need to fetch place.via, then this will run immediately
     $.when( processViaFn ? $.getJSON(place.via).pipe(processViaFn) : {} )
         .done(function() {
             bbox.extend(latlng);
+            // delay adding the marker to the map until here so that the marker
+            // attributes (icon, size, etc.) don't jarringly change after it's
+            // been placed on the map
             marker.setMap(global.map);
             global.markers.push(marker);
+            throttledFitBounds();
         });
 }
 
@@ -147,7 +164,6 @@ function reloadPlaces(data) {
                 global.markers.length = 0;
 
                 data.forEach(function(place) { mapPlace(place, bbox); });
-                global.map.fitBounds(bbox);
             });
 }
 
