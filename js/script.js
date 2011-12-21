@@ -72,7 +72,7 @@ function lockerQuery(collection, params) {
 function mapPlace(place, bbox) {
     var latlng = new google.maps.LatLng(place.lat, place.lng);
     var marker;
-    if (place.stream) {
+    if (place.path) {
         marker = new google.maps.Circle({
             center: latlng,
             fillColor: "red",
