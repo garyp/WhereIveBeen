@@ -1,9 +1,6 @@
 "Where I've Been" app for the Locker Project
 ============================================
 
-NOTE: This requires https://github.com/LockerProject/Locker/pull/408 to be
-merged into your Locker repository.
-
 Todo
 ----
 - figure out what to do with low-accuracy latitude updates so that the
